@@ -3,6 +3,13 @@
 # terminate script as soon as any command fails
 set -e
 
+hours=$(date +"%H")
+
+if [ $((hours%2)) == 1 ]; then
+  echo "Only running every two hours"
+  exit 1
+fi
+
 if [[ -z "$APP" ]]; then
   echo "Missing APP variable which must be set to the name of your app where the db is located"
   exit 1
