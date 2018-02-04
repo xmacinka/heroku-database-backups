@@ -4,10 +4,15 @@ Simple heroku app with a bash script for capturing heroku database backups and c
 ## Installation
 
 
-First create a project on heroku with the [heroku-buildpack-multi](https://github.com/heroku/heroku-buildpack-multi).
+First create a project on heroku.
 
 ```
-heroku create my-database-backups --buildpack https://github.com/heroku/heroku-buildpack-multi
+heroku create my-database-backups
+```
+Add the heroku-buildpack-cli:
+
+```
+heroku buildpacks:add https://github.com/heroku/heroku-buildpack-cli -a  my-database-backups
 ```
 
 Next push this project to your heroku projects git repository.
@@ -17,11 +22,10 @@ git remote add heroku git@heroku.com:my-database-backups.git
 git push heroku master
 ```
 
-Now we need to set some environment variables in order to get the heroku cli working properly using the [heroku-buildpack-toolbet](We are using the https://github.com/gregburek/heroku-buildpack-toolbelt.git).
+Now we need to set some environment variables in order to get the heroku cli working properly using the [heroku-buildpack-cli](https://github.com/heroku/heroku-buildpack-cli).
 
 ```
-heroku config:add HEROKU_TOOLBELT_API_EMAIL=your-email@gmail.com -a my-database-backups
-heroku config:add HEROKU_TOOLBELT_API_PASSWORD=`heroku auth:token` -a my-database-backups
+heroku config:add HEROKU_API_KEY=`heroku auth:token` -a my-database-backups
 ```
 
 Next we need to add the amazon key and secret.
