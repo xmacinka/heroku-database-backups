@@ -5,8 +5,8 @@ set -e
 
 hours=$(date +"%H")
 
-if [ $((hours%2)) == 1 ]; then
-  echo "Only running every two hours"
+if [ $((hours%($EVERY_N_HOURS))) == 1 ]; then
+  echo "Only running every N hours"
   exit 1
 fi
 
