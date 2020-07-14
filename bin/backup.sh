@@ -10,7 +10,7 @@ echo "EVERY_N_HOURS: $EVERY_N_HOURS"
 echo "HOURS_REMAINDER: $HOURS_REMAINDER"
 echo "$((hours%($EVERY_N_HOURS)))"
 
-if [ $((hours%($EVERY_N_HOURS))) != ($HOURS_REMAINDER) ]; then
+if [ $((hours%($EVERY_N_HOURS))) != $HOURS_REMAINDER ]; then
   echo "Only running every N hours"
   exit 1
 fi
