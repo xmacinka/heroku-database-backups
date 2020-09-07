@@ -39,7 +39,12 @@ chmod +x ./awscli-bundle/install
 BACKUP_FILE_NAME="$(date +"%Y-%m-%d-%H-%M")-$APP-$DATABASE.dump"
 
 heroku pg:backups capture $DATABASE --app $APP
-curl -o $BACKUP_FILE_NAME `heroku pg:backups:url --app $APP`
+
+HEROKU_BACKUP_URL=`heroku pg:backups:url --app $APP`
+echo $HEROKU_BACKUP_URL > 'last_backup_url.txt'
+/tmp/aws/bin/aws s3 cp 'last_backup_url.txt' s3://$S3_BUCKET_PATH/$APP/last_backup_url.txt
+
+curl -o $BACKUP_FILE_NAME $HEROKU_BACKUP_URL
 FINAL_FILE_NAME=$BACKUP_FILE_NAME
 
 if [[ -z "$NOGZIP" ]]; then
@@ -48,6 +53,7 @@ if [[ -z "$NOGZIP" ]]; then
 fi
 
 /tmp/aws/bin/aws s3 cp $FINAL_FILE_NAME s3://$S3_BUCKET_PATH/$APP/$DATABASE/$FINAL_FILE_NAME
+
 
 echo "backup $FINAL_FILE_NAME complete"
 
