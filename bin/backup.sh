@@ -33,7 +33,7 @@ fi
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 unzip awscliv2.zip
 chmod +x ./aws/install
-./aws/install -i /tmp/aws
+./aws/install -i /tmp/aws -b /tmp/bin
 
 BACKUP_FILE_NAME="$(date +"%Y-%m-%d-%H-%M")-$APP-$DATABASE.dump"
 
