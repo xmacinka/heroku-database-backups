@@ -30,11 +30,10 @@ if [[ -z "$S3_BUCKET_PATH" ]]; then
   exit 1
 fi
 
-#install aws-cli
-curl https://s3.amazonaws.com/aws-cli/awscli-bundle.zip -o awscli-bundle.zip
-unzip awscli-bundle.zip
-chmod +x ./awscli-bundle/install
-./awscli-bundle/install -i /tmp/aws
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+chmod +x ./aws/install
+./aws/install -i /tmp/aws
 
 BACKUP_FILE_NAME="$(date +"%Y-%m-%d-%H-%M")-$APP-$DATABASE.dump"
 
@@ -52,8 +51,34 @@ if [[ -z "$NOGZIP" ]]; then
   FINAL_FILE_NAME=$BACKUP_FILE_NAME.gz
 fi
 
-/tmp/aws/bin/aws s3 cp $FINAL_FILE_NAME s3://$S3_BUCKET_PATH/$APP/$DATABASE/$FINAL_FILE_NAME
 
+last_s3_backup_file=last_s3_backup.txt
+format="%Y-%m-%d"
+now=`date +"$format"`
+last_s3_date=''
+
+
+/tmp/aws/bin/aws s3 cp s3://$S3_BUCKET_PATH/$APP/$last_s3_backup_file $last_s3_backup_file
+
+
+if [ -f $last_s3_backup_file ]; then
+  last_s3_date=`cat $last_s3_backup_file`
+
+  if [[ "$last_s3_date" != "$now" ]]; then
+    last_s3_date='copy'
+  fi
+else
+  last_s3_date='copy'
+fi
+
+if [[ "$last_s3_date" == "copy" ]]; then
+  /tmp/aws/bin/aws s3 cp $FINAL_FILE_NAME s3://$S3_BUCKET_PATH/$APP/$DATABASE/$FINAL_FILE_NAME
+
+  echo $now > $last_s3_backup_file
+  /tmp/aws/bin/aws s3 cp $last_s3_backup_file s3://$S3_BUCKET_PATH/$APP/$last_s3_backup_file
+
+  echo "backup $FINAL_FILE_NAME copied to S3"
+fi
 
 echo "backup $FINAL_FILE_NAME complete"
 
