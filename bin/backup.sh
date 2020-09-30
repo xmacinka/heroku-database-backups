@@ -41,25 +41,16 @@ heroku pg:backups capture $DATABASE --app $APP
 
 HEROKU_BACKUP_URL=`heroku pg:backups:url --app $APP`
 echo $HEROKU_BACKUP_URL > 'last_backup_url.txt'
-/tmp/aws/bin/aws s3 cp 'last_backup_url.txt' s3://$S3_BUCKET_PATH/$APP/last_backup_url.txt
-
-curl -o $BACKUP_FILE_NAME $HEROKU_BACKUP_URL
-FINAL_FILE_NAME=$BACKUP_FILE_NAME
-
-if [[ -z "$NOGZIP" ]]; then
-  gzip $BACKUP_FILE_NAME
-  FINAL_FILE_NAME=$BACKUP_FILE_NAME.gz
-fi
-
+/tmp/bin/aws s3 cp 'last_backup_url.txt' s3://$S3_BUCKET_PATH/$APP/last_backup_url.txt
 
 last_s3_backup_file=last_s3_backup.txt
 format="%Y-%m-%d"
 now=`date +"$format"`
 last_s3_date=''
 
-
-/tmp/aws/bin/aws s3 cp s3://$S3_BUCKET_PATH/$APP/$last_s3_backup_file $last_s3_backup_file
-
+set +e
+/tmp/bin/aws s3 cp s3://$S3_BUCKET_PATH/$APP/$last_s3_backup_file $last_s3_backup_file
+set -e
 
 if [ -f $last_s3_backup_file ]; then
   last_s3_date=`cat $last_s3_backup_file`
@@ -72,10 +63,19 @@ else
 fi
 
 if [[ "$last_s3_date" == "copy" ]]; then
-  /tmp/aws/bin/aws s3 cp $FINAL_FILE_NAME s3://$S3_BUCKET_PATH/$APP/$DATABASE/$FINAL_FILE_NAME
+
+  curl -o $BACKUP_FILE_NAME $HEROKU_BACKUP_URL
+  FINAL_FILE_NAME=$BACKUP_FILE_NAME
+
+  if [[ -z "$NOGZIP" ]]; then
+    gzip $BACKUP_FILE_NAME
+    FINAL_FILE_NAME=$BACKUP_FILE_NAME.gz
+  fi
+
+  /tmp/bin/aws s3 cp $FINAL_FILE_NAME s3://$S3_BUCKET_PATH/$APP/$DATABASE/$FINAL_FILE_NAME
 
   echo $now > $last_s3_backup_file
-  /tmp/aws/bin/aws s3 cp $last_s3_backup_file s3://$S3_BUCKET_PATH/$APP/$last_s3_backup_file
+  /tmp/bin/aws s3 cp $last_s3_backup_file s3://$S3_BUCKET_PATH/$APP/$last_s3_backup_file
 
   echo "backup $FINAL_FILE_NAME copied to S3"
 fi
